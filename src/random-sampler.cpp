@@ -9,13 +9,21 @@
 #include <numeric>
 #include <algorithm>
 #include <assert.h>
+#include <stdexcept>
 
 using namespace std;
 
 namespace ur {
 
 RandomSampler::RandomSampler(std::vector<double> probs) {
-    for(auto p: probs) { assert(p >= 0); }
+    for(auto p: probs) 
+    { 
+        if( p < 0)
+        {
+            throw std::runtime_error("p < 0");
+        }
+    }
+
 
     // Normalize given probabilities
     auto sum = accumulate(probs.begin(), probs.end(), 0.0);
