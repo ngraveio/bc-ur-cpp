@@ -34,7 +34,7 @@ CXXFLAGS += -std=c++17 --debug -O0
 UNAME := $(shell uname)
 
 ifeq ($(UNAME), Linux)
-    LDLIBS +=  -lm -lc++ -lc++abi -lgcc_s -lgcc
+    LDLIBS +=  -lm -lstdc++ -lgcc_s -lgcc
 else ifeq ($(findstring MINGW64, $(UNAME)), MINGW64)
     # on windows building with msys2/mingw64
     LDLIBS +=  -lm -lstdc++ -lgcc_s -lgcc
