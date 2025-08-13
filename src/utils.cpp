@@ -98,7 +98,7 @@ StringVector split(const string& s, char separator) {
 	for(auto c: s) {
 		if(c != separator) {
             buf += c;
-        } else if(buf.length() > 0) {
+        } else if(c == separator && buf.length() > 0) {
             result.push_back(buf);
             buf = "";
         }
@@ -136,7 +136,7 @@ string drop_first(const string& s, size_t count) {
 void xor_into(ByteVector& target, const ByteVector& source) {
     auto count = target.size();
     assert(count == source.size());
-    for(int i = 0; i < count; i++) {
+    for(size_t i = 0; i < count; i++) {
         target[i] ^= source[i];
     }
 }

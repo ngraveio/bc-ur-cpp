@@ -7,6 +7,7 @@
 
 #include "xoshiro256.hpp"
 #include <limits>
+#include <cstring>
 
 /*  Written in 2018 by David Blackman and Sebastiano Vigna (vigna@acm.org)
 
@@ -93,7 +94,7 @@ uint8_t Xoshiro256::next_byte() {
 ByteVector Xoshiro256::next_data(size_t count) {
     ByteVector result;
     result.reserve(count);
-    for(int i = 0; i < count; i++) {
+    for(size_t i = 0; i < count; i++) {
         result.push_back(next_byte());
     }
     return result;
@@ -127,7 +128,7 @@ void Xoshiro256::jump() {
 	uint64_t s1 = 0;
 	uint64_t s2 = 0;
 	uint64_t s3 = 0;
-	for(int i = 0; i < sizeof JUMP / sizeof *JUMP; i++)
+	for(uint32_t i = 0; i < (sizeof JUMP / sizeof *JUMP); i++)
 		for(int b = 0; b < 64; b++) {
 			if (JUMP[i] & UINT64_C(1) << b) {
 				s0 ^= s[0];
@@ -156,7 +157,7 @@ void Xoshiro256::long_jump() {
 	uint64_t s1 = 0;
 	uint64_t s2 = 0;
 	uint64_t s3 = 0;
-	for(int i = 0; i < sizeof LONG_JUMP / sizeof *LONG_JUMP; i++)
+	for(uint32_t i = 0; i < (sizeof LONG_JUMP / sizeof *LONG_JUMP); i++)
 		for(int b = 0; b < 64; b++) {
 			if (LONG_JUMP[i] & UINT64_C(1) << b) {
 				s0 ^= s[0];

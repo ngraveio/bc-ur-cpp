@@ -12,6 +12,8 @@
 #include <iterator>
 #include <string>
 #include <type_traits>
+#include <cstdio>
+#include <cstdint>
 
 #ifndef __BYTE_ORDER__
 #error __BYTE_ORDER__ not defined
@@ -162,24 +164,14 @@ typename std::enable_if<std::is_class<Buffer>::value && std::is_unsigned<Type>::
         throw Exception("too long");
     }
 
-    switch (len) {
-    case 8:
-        buffer.push_back((t >> 56) & 0xffU);
-        buffer.push_back((t >> 48) & 0xffU);
-        buffer.push_back((t >> 40) & 0xffU);
-        buffer.push_back((t >> 32) & 0xffU);
-    case 4:
-        buffer.push_back((t >> 24) & 0xffU);
-        buffer.push_back((t >> 16) & 0xffU);
-    case 2:
-        buffer.push_back((t >> 8) & 0xffU);
-    case 1:
-        buffer.push_back(t & 0xffU);
+    for(auto index = len; index; index--) {
+        buffer.push_back((t >> ((index-1)*8)) & 0xFF);
     }
 
     return 1 + len;
 }
 
+#pragma GCC diagnostic ignored "-Wshift-count-overflow"
 template <typename InputIterator, typename Type>
 typename std::enable_if<std::is_class<InputIterator>::value && std::is_unsigned<Type>::value, std::size_t>::type decodeTagAndValue(
     InputIterator& pos, InputIterator end, Tag& tag, Type& t, Flags flags = Flag::none) {
@@ -200,17 +192,20 @@ typename std::enable_if<std::is_class<InputIterator>::value && std::is_unsigned<
         t |= static_cast<Type>(reinterpret_cast<const unsigned char&>(*(pos++))) << 32;
         len += 4;
         if ((flags & Flag::requireMinimalEncoding) && !t) throw Exception("encoding not minimal");
+        [[fallthrough]];
     case Minor::length4:
         if (std::distance(pos, end) < 4) throw Exception("not enough input");
         t |= static_cast<Type>(reinterpret_cast<const unsigned char&>(*(pos++))) << 24;
         t |= static_cast<Type>(reinterpret_cast<const unsigned char&>(*(pos++))) << 16;
         len += 2;
         if ((flags & Flag::requireMinimalEncoding) && !t) throw Exception("encoding not minimal");
+        [[fallthrough]];
     case Minor::length2:
         if (std::distance(pos, end) < 2) throw Exception("not enough input");
         t |= static_cast<Type>(reinterpret_cast<const unsigned char&>(*(pos++))) << 8;
         len++;
         if ((flags & Flag::requireMinimalEncoding) && !t) throw Exception("encoding not minimal");
+        [[fallthrough]];
     case Minor::length1:
         if (std::distance(pos, end) < 1) throw Exception("not enough input");
         t |= static_cast<Type>(reinterpret_cast<const unsigned char&>(*(pos++)));
@@ -221,6 +216,7 @@ typename std::enable_if<std::is_class<InputIterator>::value && std::is_unsigned<
     throw Exception("bad additional value");
 }
 
+#pragma GCC diagnostic warning "-Wshift-count-overflow"
 template <typename Buffer, typename Type>
 typename std::enable_if<std::is_class<Buffer>::value, std::size_t>::type encodeUnsigned(Buffer& buffer, const Type& t) {
     return encodeTagAndValue(buffer, Major::unsignedInteger, t);
@@ -424,7 +420,9 @@ decodeMapSize(InputIterator& pos, InputIterator end, Type& t, Flags flags = Flag
     auto tag = undefined;
     auto value = undefined;
     auto len = decodeTagAndValue(pos, end, tag, value, flags);
-    if (tag != Major::map) throw Exception("not Map");
+    char emsg[64];
+    snprintf(emsg, sizeof(emsg), "BC-UR: Not a Map - Tag[%llu] - Val[%llu] - Len[%u]", tag, value, len);
+    if (tag != Major::map) throw Exception(emsg);
     t = value;
     return len;
 }

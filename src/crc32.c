@@ -7,6 +7,7 @@
 
 #include "crc32.h"
 #include <memory.h>
+#include <stdbool.h>
 
 #ifdef ARDUINO
 #define htonl(x) __builtin_bswap32((uint32_t) (x))
@@ -17,10 +18,10 @@
 #endif
 
 uint32_t ur_crc32(const uint8_t* bytes, size_t len) {
-    static uint32_t* table = NULL;
+    static uint32_t table[256] = {0};
+    static bool isinit = 0;
 
-    if(table == NULL) {
-        table = malloc(256 * sizeof(uint32_t));
+    if(!isinit) {
         for(int i = 0; i < 256; i++) {
             uint32_t c = i;
             for(int j = 0; j < 8; j++) {
@@ -28,10 +29,11 @@ uint32_t ur_crc32(const uint8_t* bytes, size_t len) {
             }
             table[i] = c;
         }
+        isinit = 1;
     }
 
     uint32_t crc = ~0;
-    for(int i = 0; i < len; i++) {
+    for(size_t i = 0; i < len; i++) {
         uint32_t byte = bytes[i];
         crc = (crc >> 8) ^ table[(crc ^ byte) & 0xFF];
     }

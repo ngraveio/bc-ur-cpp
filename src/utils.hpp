@@ -53,7 +53,7 @@ void append(std::vector<T>& target, const std::array<T, N>& source) {
 template<typename T>
 std::vector<T> join(const std::vector<std::vector<T>>& parts) {
     std::vector<T> result;
-    for(auto part: parts) { append(result, part); }
+    for(const auto& part: parts) { append(result, part); }
     return result;
 }
 
