@@ -20,7 +20,7 @@ RandomSampler::RandomSampler(std::vector<double> probs) {
     { 
         if( p < 0)
         {
-            throw std::runtime_error("p < 0");
+            throw runtime_error("p < 0");
         }
     }
 

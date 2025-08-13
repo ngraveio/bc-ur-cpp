@@ -33,7 +33,7 @@ uint32_t ur_crc32(const uint8_t* bytes, size_t len) {
     }
 
     uint32_t crc = ~0;
-    for(int i = 0; i < (int)len; i++) {
+    for(size_t i = 0; i < len; i++) {
         uint32_t byte = bytes[i];
         crc = (crc >> 8) ^ table[(crc ^ byte) & 0xFF];
     }

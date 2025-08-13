@@ -12,7 +12,7 @@
 #include <iterator>
 #include <string>
 #include <type_traits>
-#include <stdio.h>
+#include <cstdio>
 #include <cstdint>
 
 #ifndef __BYTE_ORDER__
@@ -165,7 +165,7 @@ typename std::enable_if<std::is_class<Buffer>::value && std::is_unsigned<Type>::
     }
 
     for(auto index = len; index; index--) {
-        buffer.push_back((t >> ((index-1)*8)) & 0xFFU);
+        buffer.push_back((t >> ((index-1)*8)) & 0xFF);
     }
 
     return 1 + len;
@@ -192,9 +192,7 @@ typename std::enable_if<std::is_class<InputIterator>::value && std::is_unsigned<
         t |= static_cast<Type>(reinterpret_cast<const unsigned char&>(*(pos++))) << 32;
         len += 4;
         if ((flags & Flag::requireMinimalEncoding) && !t) throw Exception("encoding not minimal");
-        // Fall through (gcc, std=c++17)
         [[fallthrough]];
-        // fall through
     case Minor::length4:
         if (std::distance(pos, end) < 4) throw Exception("not enough input");
         t |= static_cast<Type>(reinterpret_cast<const unsigned char&>(*(pos++))) << 24;
@@ -202,14 +200,12 @@ typename std::enable_if<std::is_class<InputIterator>::value && std::is_unsigned<
         len += 2;
         if ((flags & Flag::requireMinimalEncoding) && !t) throw Exception("encoding not minimal");
         [[fallthrough]];
-        // fall through
     case Minor::length2:
         if (std::distance(pos, end) < 2) throw Exception("not enough input");
         t |= static_cast<Type>(reinterpret_cast<const unsigned char&>(*(pos++))) << 8;
         len++;
         if ((flags & Flag::requireMinimalEncoding) && !t) throw Exception("encoding not minimal");
         [[fallthrough]];
-        // fall through
     case Minor::length1:
         if (std::distance(pos, end) < 1) throw Exception("not enough input");
         t |= static_cast<Type>(reinterpret_cast<const unsigned char&>(*(pos++)));
